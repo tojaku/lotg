@@ -34,7 +34,7 @@ def get_timezone():
 
 @app.route('/')
 def hello_world():
-    return 'Hello World'
+    return render_template('index.html')
 
 
 @app.route('/sign_in', methods=('GET', 'POST'))
