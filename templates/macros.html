@@ -1,0 +1,19 @@
+{% macro display_form(action, form) -%}
+    <form method="post" action="{{ action }}">
+        {{ form.hidden_tag() }}
+
+        {% for field in form %}
+            {% if field.type != "CSRFTokenField" and field.type != "HiddenField" %}
+                <div class="form_row">
+                    {{ field.label }} {{ field }}
+                    <span class="validation_error">
+                    {% for error in field.errors %}
+                        {{ error }}&nbsp;
+                    {% endfor %}
+                    </span>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <input type="submit" value="{{ _('Submit') }}"/>
+    </form>
+{%- endmacro %}
