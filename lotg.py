@@ -5,6 +5,7 @@ import string
 
 from flask import Flask, render_template, g, request, flash
 from flask.ext.babel import Babel, gettext as _
+from flask.ext.mail import Mail, Message
 
 from config import LANGUAGES
 from models import db, User
@@ -13,6 +14,7 @@ from forms import SignInForm, SignUpForm
 app = Flask(__name__)
 app.config.from_object('config')
 
+mail = Mail(app)
 babel = Babel(app)
 db.init_app(app)
 
@@ -63,8 +65,11 @@ def sign_up():
         user.confirmation_string = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(20)])
         db.session.add(user)
         db.session.commit()
+
         flash(_('Successful sign up, check your e-mail'))
-        # send e-mail
+        msg = Message('Hello', recipients=[user.email])
+        msg.body = user.confirmation_string
+        mail.send(msg)
     return render_template('sign_up.html', form=form)
 
 
