@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-12-02 09:41+0100\n"
+"POT-Creation-Date: 2014-12-02 14:27+0100\n"
 "PO-Revision-Date: 2014-12-01 13:37+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: hr <LL@li.org>\n"
@@ -26,34 +26,43 @@ msgstr "Unos u polje je obavezan"
 msgid "Must be valid e-mail address"
 msgstr "Mora biti valjana e-mail adresa"
 
-#: forms.py:10
+#: forms.py:13
 #, python-format
 msgid "Maximum length is %(max)d"
 msgstr "Najveća dužina je %(max)d"
 
-#: forms.py:14
+#: forms.py:17
+#, fuzzy, python-format
+msgid "Minimum length is %(min)d"
+msgstr "Najveća dužina je %(max)d"
+
+#: forms.py:21
 msgid "E-mail"
 msgstr "E-mail"
 
-#: forms.py:15
+#: forms.py:22
 msgid "Password"
 msgstr "Zaporka"
 
-#: forms.py:19
+#: forms.py:27
 msgid "Confirm password"
 msgstr "Potvrda zaporke"
 
-#: forms.py:22
+#: forms.py:30
 msgid "Password and confirmation must be equal"
 msgstr "Zaporka i potvrda moraju biti jednake"
 
-#: forms.py:23
+#: forms.py:31
 msgid "Language"
 msgstr "Jezik"
 
-#: forms.py:24
+#: forms.py:32
 msgid "Timezone"
 msgstr "Vremenska zona"
+
+#: lotg.py:66
+msgid "Successful sign up, check your e-mail"
+msgstr "Uspješna registracija korisnika, provjerite svoj e-mail"
 
 #: templates/index.html:3
 msgid "Home"
@@ -67,11 +76,11 @@ msgstr "Dobro došli"
 msgid "Sign in"
 msgstr "Prijava korisnika"
 
+#: templates/layout.html:18 templates/sign_up.html:5
+msgid "Sign up"
+msgstr "Registracija korisnika"
+
 #: templates/macros.html:17
 msgid "Submit"
 msgstr "Pošalji"
-
-#: templates/sign_up.html:5
-msgid "Sign up"
-msgstr "Registracija korisnika"
 
