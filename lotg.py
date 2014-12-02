@@ -1,8 +1,13 @@
-from flask import Flask, render_template, g, session, request
-from flask.ext.babel import Babel
+import hashlib
+import datetime
+import random
+import string
+
+from flask import Flask, render_template, g, request, flash
+from flask.ext.babel import Babel, gettext as _
 
 from config import LANGUAGES
-from models import db
+from models import db, User
 from forms import SignInForm, SignUpForm
 
 app = Flask(__name__)
@@ -49,7 +54,17 @@ def sign_in():
 def sign_up():
     form = SignUpForm()
     if form.validate_on_submit():
-        return 'Success'
+        user = User()
+        user.email = form.email.data
+        user.password = str(hashlib.md5(str(form.password)))
+        user.signed_up = datetime.datetime.utcnow()
+        user.language = form.language.data
+        user.timezone = form.timezone.data
+        user.confirmation_string = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(20)])
+        db.session.add(user)
+        db.session.commit()
+        flash(_('Successful sign up, check your e-mail'))
+        # send e-mail
     return render_template('sign_up.html', form=form)
 
 

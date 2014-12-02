@@ -15,13 +15,13 @@ class User(db.Model):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     signed_up = db.Column(db.DateTime, nullable=False)
-    signed_in = db.Column(db.DateTime, nullable=False)
     language = db.Column(db.String(2), nullable=False)
-    timezone = db.Column(db.String(20), nullable=False)
+    timezone = db.Column(db.String(50), nullable=False)
 
+    signed_in = db.Column(db.DateTime, default=None)
     confirmed = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
-    confirmation_string = db.Column(db.String(200))
+    confirmation_string = db.Column(db.String(20))
     security_level = db.Column(db.Integer, default=1)
 
     profiles = db.relationship('Profile', backref='user')
@@ -93,8 +93,8 @@ class Team(db.Model):
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     accepted = db.Column(db.Boolean, default=None)
 
-    home_teams = db.relationship('Match', backref='home_team')
-    away_teams = db.relationship('Match', backref='away_team')
+    '''home_teams = db.relationship('Match', backref='home_team')
+    away_teams = db.relationship('Match', backref='away_team')'''
     members = db.relationship('Profile', secondary=members_table, backref='teams')
 
     def __repr__(self):
@@ -117,6 +117,9 @@ class Match(db.Model):
     admin_checked = db.Column(db.Boolean, default=None)
     method_free_win = db.Column(db.Boolean, default=None)
     method_disqualification = db.Column(db.Boolean, default=None)
+
+    home_team = db.relationship('Team', foreign_keys=home_team_id)
+    away_team = db.relationship('Team', foreign_keys=away_team_id)
 
     def __repr__(self):
         return self.round_number % '/' % self.match_number
