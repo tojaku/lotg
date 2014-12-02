@@ -4,6 +4,6 @@ SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:x1a2m3pp@localhost:3306/l
 BABEL_DEFAULT_LOCALE = 'hr'
 BABEL_DEFAULT_TIMEZONE = 'Europe/Zagreb'
 LANGUAGES = {
-    'en': 'English',
-    'hr': 'Croatian'
+    'hr': 'Hrvatski',
+    'en': 'English'
 }

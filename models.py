@@ -3,6 +3,11 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+# Association tables
+members_table = db.Table('member',
+                         db.Column('team_id', db.BigInteger, db.ForeignKey('team.id')),
+                         db.Column('profile_id', db.BigInteger, db.ForeignKey('profile.id')))
+
 
 class User(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
@@ -11,6 +16,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     signed_up = db.Column(db.DateTime, nullable=False)
     signed_in = db.Column(db.DateTime, nullable=False)
+    language = db.Column(db.String(2), nullable=False)
+    timezone = db.Column(db.String(20), nullable=False)
 
     confirmed = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
@@ -73,11 +80,6 @@ class Tournament(db.Model):
 
     def __repr__(self):
         return self.name
-
-
-members_table = db.Table('member',
-                         db.Column('team_id', db.BigInteger, db.ForeignKey('team.id')),
-                         db.Column('profile_id', db.BigInteger, db.ForeignKey('profile.id')))
 
 
 class Team(db.Model):

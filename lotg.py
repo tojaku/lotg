@@ -3,7 +3,7 @@ from flask.ext.babel import Babel
 
 from config import LANGUAGES
 from models import db
-from forms import SignInForm
+from forms import SignInForm, SignUpForm
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -43,6 +43,14 @@ def sign_in():
     if form.validate_on_submit():
         return 'Success'
     return render_template('sign_in.html', form=form)
+
+
+@app.route('/sign_up', methods=('GET', 'POST'))
+def sign_up():
+    form = SignUpForm()
+    if form.validate_on_submit():
+        return 'Success'
+    return render_template('sign_up.html', form=form)
 
 
 if __name__ == '__main__':
