@@ -1,0 +1,9 @@
+{% extends 'email/layout.html' %}
+
+{% block message %}
+    <p>{{ _('This message contains instructions how to confirm your new user account or changes you recently made. If you did not expect this message, you can ignore it.') }}</p>
+    <p>{{ _('Otherwise click the following link.') }}</p>
+    <a href="{{ confirmation_link }}" style="display: inline-block; padding: 10px; margin: 10px; border-radius: 5px; background-color: cornflowerblue; color: azure; text-decoration: none; font-weight: bold;">{{ _('Complete confirmation process') }}</a>
+{% endblock %}
+
+

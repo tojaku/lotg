@@ -3,12 +3,12 @@ import datetime
 import random
 import string
 
-from flask import Flask, render_template, g, request, flash
+from flask import Flask, render_template, g, request, flash, url_for, redirect
 from flask.ext.babel import Babel, gettext as _
 from flask.ext.mail import Mail, Message
 from sqlalchemy.exc import IntegrityError
 
-from config import LANGUAGES, DEFAULT_MAIL_SENDER
+from config import LANGUAGES, DEFAULT_MAIL_SENDER, SITE_NAME
 from models import db, User
 from forms import SignInForm, SignUpForm
 
@@ -41,16 +41,8 @@ def get_timezone():
 
 
 @app.route('/')
-def hello_world():
+def index():
     return render_template('index.html')
-
-
-@app.route('/sign_in', methods=('GET', 'POST'))
-def sign_in():
-    form = SignInForm()
-    if form.validate_on_submit():
-        return 'Success'
-    return render_template('sign_in.html', form=form)
 
 
 @app.route('/sign_up', methods=('GET', 'POST'))
@@ -69,14 +61,36 @@ def sign_up():
 
         try:
             db.session.commit()
-        except IntegrityError as ex:
-            flash(_('The following error occurred: %(message)s', message=ex.orig))
+        except IntegrityError as err:
+            if err.message.find(user.email) != -1:
+                form.email.errors.append(_('E-mail address is in use'))
         else:
-            flash(_('Successful sign up, check your e-mail'))
             msg = Message('Hello', sender=DEFAULT_MAIL_SENDER, recipients=[user.email])
-            msg.body = user.confirmation_string
+            msg.html = render_template('email/confirmation.html',
+                                       site_name=SITE_NAME,
+                                       user=user.email,
+                                       confirmation_link=url_for('confirm',
+                                                                 id=user.id,
+                                                                 key=user.confirmation_string,
+                                                                 _external=True))
             mail.send(msg)
+            flash(_('Successful sign up, check your e-mail'))
+            return redirect('')
+
     return render_template('sign_up.html', form=form)
+
+
+@app.route('/sign_in', methods=('GET', 'POST'))
+def sign_in():
+    form = SignInForm()
+    if form.validate_on_submit():
+        return 'Success'
+    return render_template('sign_in.html', form=form)
+
+
+@app.route('/confirm/<id>/<key>', methods=('GET', 'POST'))
+def confirm(id, key):
+    return 'OK';
 
 
 if __name__ == '__main__':

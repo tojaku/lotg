@@ -1,6 +1,7 @@
 import private
 
 DEBUG = True
+SITE_NAME = 'Lord of the Games'
 SECRET_KEY = 'ov:U7>9*D1/S0&Zf$#7E1@a,t.jF-U+Q'
 
 SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://' + private.MYSQL_USERNAME + ':'\
