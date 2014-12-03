@@ -7,7 +7,7 @@ from flask import Flask, render_template, g, request, flash
 from flask.ext.babel import Babel, gettext as _
 from flask.ext.mail import Mail, Message
 
-from config import LANGUAGES
+from config import LANGUAGES, DEFAULT_MAIL_SENDER
 from models import db, User
 from forms import SignInForm, SignUpForm
 
@@ -58,7 +58,8 @@ def sign_up():
     if form.validate_on_submit():
         user = User()
         user.email = form.email.data
-        user.password = str(hashlib.md5(str(form.password)))
+        digest = hashlib.md5(form.password.data)
+        user.password = digest.hexdigest()
         user.signed_up = datetime.datetime.utcnow()
         user.language = form.language.data
         user.timezone = form.timezone.data
@@ -67,7 +68,8 @@ def sign_up():
         db.session.commit()
 
         flash(_('Successful sign up, check your e-mail'))
-        msg = Message('Hello', recipients=[user.email])
+
+        msg = Message('Hello', sender=DEFAULT_MAIL_SENDER, recipients=[user.email])
         msg.body = user.confirmation_string
         mail.send(msg)
     return render_template('sign_up.html', form=form)

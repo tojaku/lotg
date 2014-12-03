@@ -12,8 +12,8 @@ members_table = db.Table('member',
 class User(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
 
-    email = db.Column(db.String(200), nullable=False, unique=True)
-    password = db.Column(db.String(200), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    password = db.Column(db.String(50), nullable=False)
     signed_up = db.Column(db.DateTime, nullable=False)
     language = db.Column(db.String(2), nullable=False)
     timezone = db.Column(db.String(50), nullable=False)
