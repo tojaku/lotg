@@ -31,3 +31,11 @@ class SignUpForm(SignInForm):
     language = SelectField(_('Language'), choices=LANGUAGES.items())
     timezone = StringField(_('Timezone'), default=BABEL_DEFAULT_TIMEZONE,
                            validators=[DataRequired(msg_required), Length(max=50, message=msg_length_max(50))])
+
+
+class AccountProblemForm(Form):
+    email = StringField(_('E-mail'), validators=[DataRequired(msg_required), Email(msg_email)])
+    problem = SelectField(_('Problem'), choices={
+        'confirmation': _('Resend confirmation message'),
+        'password': _('Reset password')
+    }.items())

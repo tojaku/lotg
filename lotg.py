@@ -1,16 +1,12 @@
-import hashlib
 import datetime
-import random
-import string
-
-from flask import Flask, render_template, g, request, flash, url_for, redirect, session
+from flask import Flask, render_template, g, request, flash, redirect, session
 from flask.ext.babel import Babel, gettext as _, format_datetime
-from flask.ext.mail import Mail, Message
+from flask.ext.mail import Mail
 from sqlalchemy.exc import IntegrityError
-
-from config import LANGUAGES, DEFAULT_MAIL_SENDER, SITE_NAME
+from config import LANGUAGES
 from models import db, User
-from forms import SignInForm, SignUpForm
+from forms import SignInForm, SignUpForm, AccountProblemForm
+from helpers import random_string, message_confirmation, message_reset_password, password_hash
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -44,8 +40,8 @@ def get_timezone():
 
 
 @app.template_filter('datetime')
-def tpl_format_datetime(value):
-    return format_datetime(value, 'dd.MMM.yy HH:mm')
+def tpl_format_datetime(value, dt_format='dd. MMMM yyyy HH:mm'):
+    return format_datetime(value, dt_format)
 
 
 # ROUTES
@@ -62,12 +58,11 @@ def sign_up():
     if form.validate_on_submit():
         user = User()
         user.email = form.email.data
-        digest = hashlib.md5(form.password.data)
-        user.password = digest.hexdigest()
+        user.password = password_hash(form.password.data)
         user.signed_up = datetime.datetime.utcnow()
         user.language = form.language.data
         user.timezone = form.timezone.data
-        user.confirmation_string = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(20)])
+        user.confirmation_string = random_string(20)
         db.session.add(user)
 
         try:
@@ -76,14 +71,7 @@ def sign_up():
             if err.message.find(user.email) != -1:
                 form.email.errors.append(_('E-mail address is in use'))
         else:
-            msg = Message(_('Account confirmation'), sender=DEFAULT_MAIL_SENDER, recipients=[user.email])
-            msg.html = render_template('email/confirmation.html',
-                                       site_name=SITE_NAME,
-                                       user=user.email,
-                                       confirmation_link=url_for('confirm',
-                                                                 id=user.id,
-                                                                 key=user.confirmation_string,
-                                                                 _external=True))
+            msg = message_confirmation(user.id, user.email, user.confirmation_string)
             mail.send(msg)
             flash(_('Successful sign up, check your e-mail'))
             return redirect('')
@@ -95,9 +83,7 @@ def sign_up():
 def sign_in():
     form = SignInForm()
     if form.validate_on_submit():
-        digest = hashlib.md5(form.password.data)
-        password_hash = digest.hexdigest()
-        user = User.query.filter_by(email=form.email.data, password=password_hash).first()
+        user = User.query.filter_by(email=form.email.data, password=password_hash(form.password.data)).first()
         if user is None:
             flash(_('Wrong email or password'))
         elif user.active is False:
@@ -116,21 +102,46 @@ def sign_in():
 
 @app.route('/sign_out')
 def sign_out():
-    session.clear();
+    session.clear()
     flash(_('Successfully signed out'))
     return redirect('')
 
 
-@app.route('/confirm/<uid>/<key>')
-def confirm(uid, key):
-    user = User.query.filter_by(id=uid, confirmation_string=key).first_or_404()
+@app.route('/confirm/<uid>/<cstring>')
+def confirm(uid, cstring):
+    user = User.query.filter_by(id=uid, confirmation_string=cstring).first_or_404()
     if user is None:
         flash(_('Wrong confirmation data'))
     else:
         user.confirmed = True
         db.session.commit()
         flash(_('Confirmation success'))
+
     return redirect('')
+
+
+@app.route('/account_problem', methods=('GET', 'POST'))
+def account_problem():
+    form = AccountProblemForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is None:
+            form.email.errors.append(_('Unknown e-mail address'))
+        elif form.problem.data == 'confirmation':
+            msg = message_confirmation(user.id, user.email, user.confirmation_string)
+            mail.send(msg)
+            flash(_('Confirmation message sent, check your e-mail'))
+            return redirect('')
+        elif form.problem.data == 'password':
+            new_password = random_string(10)
+            user.password = password_hash(new_password)
+            db.session.commit()
+            msg = message_reset_password(user.email, new_password)
+            mail.send(msg)
+            flash(_('Your password was reset, check your e-mail'))
+            return redirect('')
+
+    return render_template('account_problem.html', form=form)
 
 
 if __name__ == '__main__':
