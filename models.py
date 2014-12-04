@@ -1,5 +1,3 @@
-import datetime
-
 from flask.ext.sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -74,8 +72,6 @@ class Tournament(db.Model):
     start = db.Column(db.DateTime, nullable=False)
     configuration = db.Column(db.String(1000))
 
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
     teams = db.relationship('Team', backref='tournament')
     matches = db.relationship('Match', backref='tournament')
 
@@ -89,9 +85,9 @@ class Team(db.Model):
     user_id = db.Column(db.BigInteger, db.ForeignKey('user.id'))
 
     name = db.Column(db.String(50), nullable=False)
+    created = db.Column(db.DateTime, nullable=False)
 
     image = db.Column(db.String(200))
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     accepted = db.Column(db.Boolean, default=None)
 
     '''home_teams = db.relationship('Match', backref='home_team')

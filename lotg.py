@@ -4,7 +4,7 @@ import random
 import string
 
 from flask import Flask, render_template, g, request, flash, url_for, redirect, session
-from flask.ext.babel import Babel, gettext as _
+from flask.ext.babel import Babel, gettext as _, format_datetime
 from flask.ext.mail import Mail, Message
 from sqlalchemy.exc import IntegrityError
 
@@ -41,6 +41,11 @@ def get_timezone():
     if g.user is not None:
         return g.user.timezone
     return None
+
+
+@app.template_filter('datetime')
+def tpl_format_datetime(value):
+    return format_datetime(value, 'dd.MMM.yy HH:mm')
 
 
 # ROUTES
@@ -101,6 +106,8 @@ def sign_in():
             flash(_('Your account is not confirmed'))
         else:
             session['user_id'] = user.id
+            user.signed_in = datetime.datetime.utcnow()
+            db.session.commit()
             flash(_('Successfully signed in') + ' ' + user.email)
             return redirect('')
 
