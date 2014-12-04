@@ -12,7 +12,8 @@
     <h1>LotG</h1>
 
     <div class="navigation">
-        {% if g.user %}
+        {% if g.user is not none %}
+            <a href="{{ url_for('sign_out') }}">{{ _('Sign out') }}</a>
         {% else %}
             <a href="{{ url_for('sign_in') }}">{{ _('Sign in') }}</a>
             <a href="{{ url_for('sign_up') }}">{{ _('Sign up') }}</a>

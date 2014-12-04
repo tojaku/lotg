@@ -3,7 +3,7 @@ import datetime
 import random
 import string
 
-from flask import Flask, render_template, g, request, flash, url_for, redirect
+from flask import Flask, render_template, g, request, flash, url_for, redirect, session
 from flask.ext.babel import Babel, gettext as _
 from flask.ext.mail import Mail, Message
 from sqlalchemy.exc import IntegrityError
@@ -22,15 +22,17 @@ db.init_app(app)
 
 @app.before_request
 def before_request():
-    g.user = None
-    '''if 'user_id' in session:
-        g.user = query_db('select * from user where user_id = ?', [session['user_id']], one=True)'''
+    if 'user_id' in session:
+        user_id = session['user_id']
+        g.user = User.query.get_or_404(user_id)
+    else:
+        g.user = None
 
 
 @babel.localeselector
 def get_locale():
     if g.user is not None:
-        return g.user.locale
+        return g.user.language
     return request.accept_languages.best_match(LANGUAGES.keys())
 
 
@@ -38,6 +40,10 @@ def get_locale():
 def get_timezone():
     if g.user is not None:
         return g.user.timezone
+    return None
+
+
+# ROUTES
 
 
 @app.route('/')
@@ -65,7 +71,7 @@ def sign_up():
             if err.message.find(user.email) != -1:
                 form.email.errors.append(_('E-mail address is in use'))
         else:
-            msg = Message('Hello', sender=DEFAULT_MAIL_SENDER, recipients=[user.email])
+            msg = Message(_('Account confirmation'), sender=DEFAULT_MAIL_SENDER, recipients=[user.email])
             msg.html = render_template('email/confirmation.html',
                                        site_name=SITE_NAME,
                                        user=user.email,
@@ -84,13 +90,40 @@ def sign_up():
 def sign_in():
     form = SignInForm()
     if form.validate_on_submit():
-        return 'Success'
+        digest = hashlib.md5(form.password.data)
+        password_hash = digest.hexdigest()
+        user = User.query.filter_by(email=form.email.data, password=password_hash).first()
+        if user is None:
+            flash(_('Wrong email or password'))
+        elif user.active is False:
+            flash(_('Your account is deactivated'))
+        elif user.confirmed is False:
+            flash(_('Your account is not confirmed'))
+        else:
+            session['user_id'] = user.id
+            flash(_('Successfully signed in') + ' ' + user.email)
+            return redirect('')
+
     return render_template('sign_in.html', form=form)
 
 
-@app.route('/confirm/<id>/<key>', methods=('GET', 'POST'))
-def confirm(id, key):
-    return 'OK';
+@app.route('/sign_out')
+def sign_out():
+    session.clear();
+    flash(_('Successfully signed out'))
+    return redirect('')
+
+
+@app.route('/confirm/<uid>/<key>')
+def confirm(uid, key):
+    user = User.query.filter_by(id=uid, confirmation_string=key).first_or_404()
+    if user is None:
+        flash(_('Wrong confirmation data'))
+    else:
+        user.confirmed = True
+        db.session.commit()
+        flash(_('Confirmation success'))
+    return redirect('')
 
 
 if __name__ == '__main__':
