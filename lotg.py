@@ -1,20 +1,21 @@
 import datetime
 from flask import Flask, render_template, g, request, flash, redirect, session
-from flask.ext.babel import Babel, gettext as _, format_datetime
+from flask.ext.babel import Babel, gettext as _
 from flask.ext.mail import Mail
 from sqlalchemy.exc import IntegrityError
 from config import LANGUAGES
 from models import db, User
 from forms import SignInForm, SignUpForm, AccountProblemForm
-from helpers import random_string, message_confirmation, message_reset_password, password_hash
+from helpers import random_string, message_confirmation, message_reset_password, password_hash, access_allowed, \
+    jinja_format_datetime
+
 
 app = Flask(__name__)
 app.config.from_object('config')
-
 mail = Mail(app)
 babel = Babel(app)
 db.init_app(app)
-
+app.jinja_env.filters['datetime'] = jinja_format_datetime
 
 @app.before_request
 def before_request():
@@ -23,7 +24,6 @@ def before_request():
         g.user = User.query.get_or_404(user_id)
     else:
         g.user = None
-
 
 @babel.localeselector
 def get_locale():
@@ -39,20 +39,13 @@ def get_timezone():
     return None
 
 
-@app.template_filter('datetime')
-def tpl_format_datetime(value, dt_format='dd. MMMM yyyy HH:mm'):
-    return format_datetime(value, dt_format)
-
-
-# ROUTES
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
 @app.route('/sign_up', methods=('GET', 'POST'))
+@access_allowed(0, True)
 def sign_up():
     form = SignUpForm()
     if form.validate_on_submit():
@@ -80,6 +73,7 @@ def sign_up():
 
 
 @app.route('/sign_in', methods=('GET', 'POST'))
+@access_allowed(0, True)
 def sign_in():
     form = SignInForm()
     if form.validate_on_submit():
@@ -94,13 +88,14 @@ def sign_in():
             session['user_id'] = user.id
             user.signed_in = datetime.datetime.utcnow()
             db.session.commit()
-            flash(_('Successfully signed in') + ' ' + user.email)
+            flash(_('Successfully signed in'))
             return redirect('')
 
     return render_template('sign_in.html', form=form)
 
 
 @app.route('/sign_out')
+@access_allowed(1)
 def sign_out():
     session.clear()
     flash(_('Successfully signed out'))
@@ -108,19 +103,17 @@ def sign_out():
 
 
 @app.route('/confirm/<uid>/<cstring>')
+@access_allowed(0, True)
 def confirm(uid, cstring):
     user = User.query.filter_by(id=uid, confirmation_string=cstring).first_or_404()
-    if user is None:
-        flash(_('Wrong confirmation data'))
-    else:
-        user.confirmed = True
-        db.session.commit()
-        flash(_('Confirmation success'))
-
+    user.confirmed = True
+    db.session.commit()
+    flash(_('Confirmation success'))
     return redirect('')
 
 
 @app.route('/account_problem', methods=('GET', 'POST'))
+@access_allowed(0, True)
 def account_problem():
     form = AccountProblemForm()
     if form.validate_on_submit():

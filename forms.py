@@ -5,6 +5,8 @@ from flask.ext.babel import lazy_gettext as _
 from config import LANGUAGES, BABEL_DEFAULT_TIMEZONE
 
 # Common validation messages
+
+
 msg_required = _('Field is required')
 msg_email = _('Must be valid e-mail address')
 
@@ -15,6 +17,8 @@ def msg_length_max(n):
 
 def msg_length_min(n):
     return _('Minimum length is %(min)d', min=n)
+
+# Forms
 
 
 class SignInForm(Form):
