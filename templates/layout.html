@@ -14,6 +14,7 @@
     <div class="navigation">
         {% if g.user is not none %}
             <a href="{{ url_for('sign_out') }}">{{ _('Sign out') }}</a>
+            <a href="{{ url_for('update_account') }}">{{ _('Update account data') }}</a>
         {% else %}
             <a href="{{ url_for('sign_in') }}">{{ _('Sign in') }}</a>
             <a href="{{ url_for('sign_up') }}">{{ _('Sign up') }}</a>

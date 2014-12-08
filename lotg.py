@@ -5,7 +5,7 @@ from flask.ext.mail import Mail
 from sqlalchemy.exc import IntegrityError
 from config import LANGUAGES
 from models import db, User
-from forms import SignInForm, SignUpForm, AccountProblemForm
+from forms import SignInForm, SignUpForm, AccountProblemForm, AccountDataForm
 from helpers import random_string, message_confirmation, message_reset_password, password_hash, access_allowed, \
     jinja_format_datetime
 
@@ -103,7 +103,7 @@ def sign_out():
 
 
 @app.route('/confirm/<uid>/<cstring>')
-@access_allowed(0, True)
+@access_allowed(0)
 def confirm(uid, cstring):
     user = User.query.filter_by(id=uid, confirmation_string=cstring).first_or_404()
     user.confirmed = True
@@ -135,6 +135,37 @@ def account_problem():
             return redirect('')
 
     return render_template('account_problem.html', form=form)
+
+
+@app.route('/update_account', methods=('GET', 'POST'))
+@access_allowed(1)
+def update_account():
+    form = AccountDataForm()
+    user = g.user
+    if request.method == 'GET':
+        form.email.data = user.email
+        form.language.data = user.language
+        form.timezone.data = user.timezone
+    elif request.method == 'POST' and form.validate_on_submit():
+        if password_hash(form.old_password.data) != user.password:
+            form.old_password.errors.append(_('Wrong password'))
+            return render_template('update_account.html', form=form)
+        if form.email.data != user.email:
+            user.email = form.email.data
+            user.confirmed = False
+            user.confirmation_string = random_string(20)
+            msg = message_confirmation(user.id, user.email, user.confirmation_string)
+            mail.send(msg)
+            flash(_('Confirmation message sent, check your e-mail'))
+        if form.password.data:
+            user.password = password_hash(form.password.data)
+            flash(_('Password successfully changed'))
+        user.language = form.language.data
+        user.timezone = form.timezone.data
+        db.session.commit()
+        return redirect('update_account')
+
+    return render_template('update_account.html', form=form)
 
 
 if __name__ == '__main__':

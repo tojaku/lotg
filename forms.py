@@ -43,3 +43,12 @@ class AccountProblemForm(Form):
         'confirmation': _('Resend confirmation message'),
         'password': _('Reset password')
     }.items())
+
+
+class AccountDataForm(SignUpForm):
+    password = PasswordField(_('Password'), validators=[Optional(), Length(min=6, message=msg_length_min(6))])
+    password_confirmation = PasswordField(_('Confirm password'),
+                                          validators=[EqualTo('password',
+                                                              message=_('Password and confirmation must be equal'))])
+    old_password = PasswordField(_('Old password'), validators=[DataRequired(msg_required),
+                                                                Length(min=6, message=msg_length_min(6))])

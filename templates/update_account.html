@@ -1,0 +1,9 @@
+{% import 'macros.html' as macros %}
+
+{% extends "layout.html" %}
+
+{% block title %}{{ _('Update account data') }}{% endblock %}
+
+{% block body %}
+   {{ macros.display_form(url_for('update_account'), form) }}
+{% endblock %}
