@@ -1,19 +1,32 @@
 {% macro display_form(action, form) -%}
-    <form method="post" action="{{ action }}">
+    <form method="post" action="{{ action }}" class="form-horizontal" role="form">
         {{ form.hidden_tag() }}
-
         {% for field in form %}
             {% if field.type != "CSRFTokenField" and field.type != "HiddenField" %}
-                <div class="form_row">
-                    {{ field.label }} {{ field }}
-                    <span class="validation_error">
-                    {% for error in field.errors %}
-                        {{ error }}&nbsp;
-                    {% endfor %}
-                    </span>
+                {% set errors = False %}
+                {% if field.errors %}
+                    {% set errors = True %}
+                {% endif %}
+                <div class="form-group {% if errors %} has-error{% endif %}">
+                    {{ field.label(class_='col-sm-2 control-label') }}
+                    <div class="{% if errors %}col-sm-6{% else %}col-sm-10{% endif %}">
+                        {{ field(class_='form-control') }}
+                    </div>
+                    {% if errors %}
+                        <div class="col-sm-4">
+                            {% for error in field.errors %}
+                                <span class="label label-danger">{{ error }}</span>&nbsp;
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             {% endif %}
         {% endfor %}
-        <input type="submit" value="{{ _('Submit') }}"/>
+        <div class='form-group'>
+            <div class='col-sm-offset-2 col-sm-10'>
+                <input type="submit" value="{{ _('Submit') }}" class="btn btn-success"/>
+            </div>
+        </div>
+
     </form>
 {%- endmacro %}

@@ -1,9 +1,9 @@
 {% import 'macros.html' as macros %}
 
-{% extends "layout.html" %}
+{% extends "layout_form.html" %}
 
 {% block title %}{{ _('Sign up') }}{% endblock %}
 
-{% block body %}
+{% block form %}
    {{ macros.display_form(url_for('sign_up'), form) }}
 {% endblock %}
