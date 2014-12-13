@@ -14,6 +14,7 @@ LANGUAGES = {
     'en': 'English'
 }
 
+# MAIL SETTINGS
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
 MAIL_USE_SSL = False
